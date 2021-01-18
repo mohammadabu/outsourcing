@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <record id="base.module_category_operations_outsourcing" model="ir.module.category">
+    <record id="module_category_operations_outsourcing" model="ir.module.category">
         <field name="description">Helps you manage your outsourcings and tasks by tracking them, generating plannings, etc...</field>
         <field name="sequence">3</field>
     </record>
