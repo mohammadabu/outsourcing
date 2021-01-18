@@ -16,3 +16,16 @@ class ResPartner(models.Model):
         result = dict((data['partner_id'][0], data['partner_id_count']) for data in fetch_data)
         for partner in self:
             partner.task_count = result.get(partner.id, 0) + sum(c.task_count for c in partner.child_ids)
+
+
+class res_users_rule(models.Model):
+    _name = 'res.users'
+    _inherit = 'res.users'
+
+    project_rule = fields.Many2many(compute='_task_rule_calc', comodel_name='outsourcing.outsourcing')
+    def _task_rule_calc(self):
+        # right_ids = self.env['outsourcing.outsourcing'].search([('username_ids.id','=',self.id)])
+        stage_ids = []
+        stage_ids.append(4)
+        for rec in self:
+            rec.project_rule = stage_ids

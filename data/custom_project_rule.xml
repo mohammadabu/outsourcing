@@ -1,0 +1,14 @@
+<odoo>
+    <record id="project_rule_users_only" model="ir.rule">
+        <field name="name">project_rule</field>
+        <field name="model_id" ref="model_outsourcing_outsourcing" />
+        <field name="groups" eval="[(4,ref('outsourcing.group_outsourcing_user'))]"/>
+        <field name="perm_read" eval = "1"/>
+        <field name="perm_write" eval = "1"/>
+        <field name="perm_create" eval = "1"/>
+        <field name="perm_unlink" eval = "1"/>
+        <field name="domain_force">
+            [('id','in', user.project_rule.ids)]  
+        </field>
+    </record>
+</odoo>    
