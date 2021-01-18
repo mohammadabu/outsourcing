@@ -37,7 +37,6 @@
         'data/digest_data.xml',
         'data/outsourcing_mail_template_data.xml',
         'data/outsourcing_data.xml',
-        'data/custom_project_rule.xml'
     ],
     # 'demo': ['data/outsourcing_demo.xml'],
     'test': [
