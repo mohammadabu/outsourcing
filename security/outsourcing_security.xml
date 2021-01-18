@@ -19,7 +19,7 @@
         <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
     </record>
 
-    <record id="group_subtask_outsourcing" model="res.groups">
+    <!-- <record id="group_subtask_outsourcing" model="res.groups">
         <field name="name">Use Subtasks</field>
         <field name="category_id" ref="base.module_category_hidden"/>
     </record>
@@ -27,9 +27,9 @@
     <record id="group_outsourcing_rating" model="res.groups">
         <field name="name">Use Rating on outsourcing</field>
         <field name="category_id" ref="base.module_category_hidden"/>
-    </record>
+    </record> -->
 
-<data noupdate="1">
+<!-- <data noupdate="1">
     <record id="base.default_user" model="res.users">
         <field name="groups_id" eval="[(4,ref('outsourcing.group_outsourcing_manager'))]"/>
     </record>
@@ -124,5 +124,5 @@
         <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
     </record>
 
-</data>
+</data> -->
 </odoo>
