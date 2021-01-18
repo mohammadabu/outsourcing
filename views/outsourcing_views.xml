@@ -451,9 +451,7 @@
                             attrs="{'invisible' : ['|', ('parent_id', '!=', False), ('id', '=', False)]}" context="{'default_user_id': user_id, 'default_parent_id': id, 'default_outsourcing_id': subtask_outsourcing_id}" groups="outsourcing.group_subtask_outsourcing">
                             <field string="Sub-tasks" name="subtask_count" widget="statinfo"/>
                         </button>
-                        <!-- <button name="%(rating_rating_action_task)d" type="action" attrs="{'invisible': [('rating_count', '=', 0)]}" class="oe_stat_button" icon="fa-smile-o" groups="outsourcing.group_outsourcing_rating">
-                            <field name="rating_count" string="Rating" widget="statinfo"/>
-                        </button> -->
+                       
                     </div>
                     <widget name="web_ribbon" title="Archived" bg_color="bg-danger" attrs="{'invisible': [('active', '=', True)]}"/>
                     <div class="oe_title pr-0">
