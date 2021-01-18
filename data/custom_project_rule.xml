@@ -8,7 +8,7 @@
         <field name="perm_create" eval = "1"/>
         <field name="perm_unlink" eval = "1"/>
         <field name="domain_force">
-            [('id','in', user.project_rule.id)]  
+            [('id','in', user.project_rule.ids)]  
         </field>
     </record>
 </odoo>    
