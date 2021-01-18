@@ -20,7 +20,7 @@
     </record>
 
     <record id="group_subtask_outsourcing" model="res.groups">
-        <field name="name">Use Subtasks</field>
+        <field name="name">Use Subtasks on outsourcing</field>
         <field name="category_id" ref="base.module_category_hidden"/>
     </record>
 
