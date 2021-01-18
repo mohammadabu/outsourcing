@@ -61,7 +61,7 @@ class outsourcingTaskType(models.Model):
         return super(outsourcingTaskType, stages).unlink()
 
 
-class outsourcing(models.Model):
+class Outsourcing(models.Model):
     _name = "outsourcing.outsourcing"
     _description = "outsourcing"
     _inherit = ['portal.mixin', 'mail.alias.mixin', 'mail.thread', 'rating.parent.mixin']
@@ -74,7 +74,7 @@ class outsourcing(models.Model):
         return vals.get('alias_model', 'outsourcing.task')
 
     def get_alias_values(self):
-        values = super(outsourcing, self).get_alias_values()
+        values = super(Outsourcing, self).get_alias_values()
         values['alias_defaults'] = {'outsourcing_id': self.id}
         return values
 
@@ -226,12 +226,12 @@ class outsourcing(models.Model):
     ]
 
     def _compute_access_url(self):
-        super(outsourcing, self)._compute_access_url()
+        super(Outsourcing, self)._compute_access_url()
         for outsourcing in self:
             outsourcing.access_url = '/my/outsourcing/%s' % outsourcing.id
 
     def _compute_access_warning(self):
-        super(outsourcing, self)._compute_access_warning()
+        super(Outsourcing, self)._compute_access_warning()
         for outsourcing in self.filtered(lambda x: x.privacy_visibility != 'portal'):
             outsourcing.access_warning = _(
                 "The outsourcing cannot be shared with the recipient(s) because the privacy of the outsourcing is too restricted. Set the privacy to 'Visible by following customers' in order to make it accessible by the recipient(s).")
@@ -276,7 +276,7 @@ class outsourcing(models.Model):
             default = {}
         if not default.get('name'):
             default['name'] = _("%s (copy)") % (self.name)
-        outsourcing = super(outsourcing, self).copy(default)
+        outsourcing = super(Outsourcing, self).copy(default)
         if self.subtask_outsourcing_id == self:
             outsourcing.subtask_outsourcing_id = outsourcing
         for follower in self.message_follower_ids:
@@ -285,23 +285,23 @@ class outsourcing(models.Model):
             self.map_tasks(outsourcing.id)
         return outsourcing
 
-    # @api.model
-    # def create(self, vals):
-    #     # Prevent double outsourcing creation
-    #     self = self.with_context(mail_create_nosubscribe=True)
-    #     outsourcings = super(outsourcing, self).create(vals)
-    #     if not vals.get('subtask_outsourcing_id'):
-    #         outsourcings.subtask_outsourcing_id = outsourcings.id
-    #     if outsourcings.privacy_visibility == 'portal' and outsourcings.partner_id:
-    #         outsourcings.message_subscribe(outsourcings.partner_id.ids)
-    #     return outsourcings
+    @api.model
+    def create(self, vals):
+        # Prevent double outsourcing creation
+        self = self.with_context(mail_create_nosubscribe=True)
+        outsourcings = super(Outsourcing, self).create(vals)
+        if not vals.get('subtask_outsourcing_id'):
+            outsourcings.subtask_outsourcing_id = outsourcings.id
+        if outsourcings.privacy_visibility == 'portal' and outsourcings.partner_id:
+            outsourcings.message_subscribe(outsourcings.partner_id.ids)
+        return outsourcings
 
     def write(self, vals):
         # directly compute is_favorite to dodge allow write access right
         if 'is_favorite' in vals:
             vals.pop('is_favorite')
             self._fields['is_favorite'].determine_inverse(self)
-        res = super(outsourcing, self).write(vals) if vals else True
+        res = super(Outsourcing, self).write(vals) if vals else True
         if 'active' in vals:
             # archiving/unarchiving a outsourcing does it on its tasks, too
             self.with_context(active_test=False).mapped('tasks').write({'active': vals['active']})
@@ -320,13 +320,13 @@ class outsourcing(models.Model):
         for outsourcing in self:
             if outsourcing.analytic_account_id and not outsourcing.analytic_account_id.line_ids:
                 analytic_accounts_to_delete |= outsourcing.analytic_account_id
-        result = super(outsourcing, self).unlink()
+        result = super(Outsourcing, self).unlink()
         analytic_accounts_to_delete.unlink()
         return result
 
     def message_subscribe(self, partner_ids=None, channel_ids=None, subtype_ids=None):
         """ Subscribe to all existing active tasks when subscribing to a outsourcing """
-        res = super(outsourcing, self).message_subscribe(partner_ids=partner_ids, channel_ids=channel_ids, subtype_ids=subtype_ids)
+        res = super(Outsourcing, self).message_subscribe(partner_ids=partner_ids, channel_ids=channel_ids, subtype_ids=subtype_ids)
         outsourcing_subtypes = self.env['mail.message.subtype'].browse(subtype_ids) if subtype_ids else None
         task_subtypes = (outsourcing_subtypes.mapped('parent_id') | outsourcing_subtypes.filtered(lambda sub: sub.internal or sub.default)).ids if outsourcing_subtypes else None
         if not subtype_ids or task_subtypes:
@@ -337,7 +337,7 @@ class outsourcing(models.Model):
     def message_unsubscribe(self, partner_ids=None, channel_ids=None):
         """ Unsubscribe from all tasks when unsubscribing from a outsourcing """
         self.mapped('tasks').message_unsubscribe(partner_ids=partner_ids, channel_ids=channel_ids)
-        return super(outsourcing, self).message_unsubscribe(partner_ids=partner_ids, channel_ids=channel_ids)
+        return super(Outsourcing, self).message_unsubscribe(partner_ids=partner_ids, channel_ids=channel_ids)
 
     # ---------------------------------------------------
     #  Actions
