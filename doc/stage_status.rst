@@ -8,18 +8,18 @@ Stage and Status
 Stage
 +++++
 
-This revision removed the concept of state on project.task objects. The ``state``
+This revision removed the concept of state on outsourcing.task objects. The ``state``
 field has been totally removed and replaced by stages, using ``stage_id``. The
 following models are impacted:
 
- - ``project.task`` now use only stages. However a convention still exists about
+ - ``outsourcing.task`` now use only stages. However a convention still exists about
    'New' stage. A task is consdered as ``new`` when it has the following
    properties:
 
    - ``stage_id and stage_id.sequence = 1``
 
- - ``project.task.type`` do not have any ``state`` field anymore. 
- - ``project.task.report`` do not have any ``state`` field anymore. 
+ - ``outsourcing.task.type`` do not have any ``state`` field anymore. 
+ - ``outsourcing.task.report`` do not have any ``state`` field anymore. 
 
 By default a newly created task is in a new stage. It means that it will
 fetch the stage having ``sequence = 1``. Stage mangement is done using the
@@ -31,7 +31,7 @@ Stage analysis
 Stage analysis can be performed using the newly introduced ``date_last_stage_update``
 datetime field. This field is updated everytime ``stage_id`` is updated.
 
-``project.task.report`` model also uses the ``date_last_stage_update`` field.
+``outsourcing.task.report`` model also uses the ``date_last_stage_update`` field.
 This allows to group and analyse the time spend in the various stages.
 
 Open / Assignation date
@@ -43,7 +43,7 @@ The ``date_open`` field meaning has been updated. It is now set when the ``user_
 Subtypes
 ++++++++
 
-The following subtypes are triggered on ``project.task``:
+The following subtypes are triggered on ``outsourcing.task``:
 
  - ``mt_task_new``: new tasks. Condition: ``obj.stage_id and obj.stage_id.sequence == 1``
  - ``mt_task_stage``: stage changed. Condition: ``obj.stage_id and obj.stage_id.sequence != 1``
@@ -51,5 +51,5 @@ The following subtypes are triggered on ``project.task``:
  - ``mt_task_blocked``: kanban state blocked. Condition: ``obj.kanban_state == 'blocked'``
 
 
-Those subtypes are also available on the ``project.project`` model and are used
+Those subtypes are also available on the ``outsourcing.outsourcing`` model and are used
 for the auto subscription.

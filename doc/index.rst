@@ -1,8 +1,8 @@
 =====================
-Project DevDoc
+outsourcing DevDoc
 =====================
 
-Project module documentation
+outsourcing module documentation
 ===================================
 
 Documentation topics

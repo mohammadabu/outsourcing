@@ -17,24 +17,24 @@ class CustomerPortal(CustomerPortal):
 
     def _prepare_home_portal_values(self):
         values = super(CustomerPortal, self)._prepare_home_portal_values()
-        values['project_count'] = request.env['project.project'].search_count([])
-        values['task_count'] = request.env['project.task'].search_count([])
+        values['outsourcing_count'] = request.env['outsourcing.outsourcing'].search_count([])
+        values['task_count'] = request.env['outsourcing.task'].search_count([])
         return values
 
     # ------------------------------------------------------------
-    # My Project
+    # My outsourcing
     # ------------------------------------------------------------
-    def _project_get_page_view_values(self, project, access_token, **kwargs):
+    def _outsourcing_get_page_view_values(self, outsourcing, access_token, **kwargs):
         values = {
-            'page_name': 'project',
-            'project': project,
+            'page_name': 'outsourcing',
+            'outsourcing': outsourcing,
         }
-        return self._get_page_view_values(project, access_token, values, 'my_projects_history', False, **kwargs)
+        return self._get_page_view_values(outsourcing, access_token, values, 'my_outsourcings_history', False, **kwargs)
 
-    @http.route(['/my/projects', '/my/projects/page/<int:page>'], type='http', auth="user", website=True)
-    def portal_my_projects(self, page=1, date_begin=None, date_end=None, sortby=None, **kw):
+    @http.route(['/my/outsourcings', '/my/outsourcings/page/<int:page>'], type='http', auth="user", website=True)
+    def portal_my_outsourcings(self, page=1, date_begin=None, date_end=None, sortby=None, **kw):
         values = self._prepare_portal_layout_values()
-        Project = request.env['project.project']
+        outsourcing = request.env['outsourcing.outsourcing']
         domain = []
 
         searchbar_sortings = {
@@ -46,46 +46,46 @@ class CustomerPortal(CustomerPortal):
         order = searchbar_sortings[sortby]['order']
 
         # archive groups - Default Group By 'create_date'
-        archive_groups = self._get_archive_groups('project.project', domain) if values.get('my_details') else []
+        archive_groups = self._get_archive_groups('outsourcing.outsourcing', domain) if values.get('my_details') else []
         if date_begin and date_end:
             domain += [('create_date', '>', date_begin), ('create_date', '<=', date_end)]
-        # projects count
-        project_count = Project.search_count(domain)
+        # outsourcings count
+        outsourcing_count = outsourcing.search_count(domain)
         # pager
         pager = portal_pager(
-            url="/my/projects",
+            url="/my/outsourcings",
             url_args={'date_begin': date_begin, 'date_end': date_end, 'sortby': sortby},
-            total=project_count,
+            total=outsourcing_count,
             page=page,
             step=self._items_per_page
         )
 
         # content according to pager and archive selected
-        projects = Project.search(domain, order=order, limit=self._items_per_page, offset=pager['offset'])
-        request.session['my_projects_history'] = projects.ids[:100]
+        outsourcings = outsourcing.search(domain, order=order, limit=self._items_per_page, offset=pager['offset'])
+        request.session['my_outsourcings_history'] = outsourcings.ids[:100]
 
         values.update({
             'date': date_begin,
             'date_end': date_end,
-            'projects': projects,
-            'page_name': 'project',
+            'outsourcings': outsourcings,
+            'page_name': 'outsourcing',
             'archive_groups': archive_groups,
-            'default_url': '/my/projects',
+            'default_url': '/my/outsourcings',
             'pager': pager,
             'searchbar_sortings': searchbar_sortings,
             'sortby': sortby
         })
-        return request.render("project.portal_my_projects", values)
+        return request.render("outsourcing.portal_my_outsourcings", values)
 
-    @http.route(['/my/project/<int:project_id>'], type='http', auth="public", website=True)
-    def portal_my_project(self, project_id=None, access_token=None, **kw):
+    @http.route(['/my/outsourcing/<int:outsourcing_id>'], type='http', auth="public", website=True)
+    def portal_my_outsourcing(self, outsourcing_id=None, access_token=None, **kw):
         try:
-            project_sudo = self._document_check_access('project.project', project_id, access_token)
+            outsourcing_sudo = self._document_check_access('outsourcing.outsourcing', outsourcing_id, access_token)
         except (AccessError, MissingError):
             return request.redirect('/my')
 
-        values = self._project_get_page_view_values(project_sudo, access_token, **kw)
-        return request.render("project.portal_my_project", values)
+        values = self._outsourcing_get_page_view_values(outsourcing_sudo, access_token, **kw)
+        return request.render("outsourcing.portal_my_outsourcing", values)
 
     # ------------------------------------------------------------
     # My Task
@@ -99,7 +99,7 @@ class CustomerPortal(CustomerPortal):
         return self._get_page_view_values(task, access_token, values, 'my_tasks_history', False, **kwargs)
 
     @http.route(['/my/tasks', '/my/tasks/page/<int:page>'], type='http', auth="user", website=True)
-    def portal_my_tasks(self, page=1, date_begin=None, date_end=None, sortby=None, filterby=None, search=None, search_in='content', groupby='project', **kw):
+    def portal_my_tasks(self, page=1, date_begin=None, date_end=None, sortby=None, filterby=None, search=None, search_in='content', groupby='outsourcing', **kw):
         values = self._prepare_portal_layout_values()
         searchbar_sortings = {
             'date': {'label': _('Newest'), 'order': 'create_date desc'},
@@ -119,25 +119,25 @@ class CustomerPortal(CustomerPortal):
         }
         searchbar_groupby = {
             'none': {'input': 'none', 'label': _('None')},
-            'project': {'input': 'project', 'label': _('Project')},
+            'outsourcing': {'input': 'outsourcing', 'label': _('outsourcing')},
         }
 
-        # extends filterby criteria with project the customer has access to
-        projects = request.env['project.project'].search([])
-        for project in projects:
+        # extends filterby criteria with outsourcing the customer has access to
+        outsourcings = request.env['outsourcing.outsourcing'].search([])
+        for outsourcing in outsourcings:
             searchbar_filters.update({
-                str(project.id): {'label': project.name, 'domain': [('project_id', '=', project.id)]}
+                str(outsourcing.id): {'label': outsourcing.name, 'domain': [('outsourcing_id', '=', outsourcing.id)]}
             })
 
-        # extends filterby criteria with project (criteria name is the project id)
-        # Note: portal users can't view projects they don't follow
-        project_groups = request.env['project.task'].read_group([('project_id', 'not in', projects.ids)],
-                                                                ['project_id'], ['project_id'])
-        for group in project_groups:
-            proj_id = group['project_id'][0] if group['project_id'] else False
-            proj_name = group['project_id'][1] if group['project_id'] else _('Others')
+        # extends filterby criteria with outsourcing (criteria name is the outsourcing id)
+        # Note: portal users can't view outsourcings they don't follow
+        outsourcing_groups = request.env['outsourcing.task'].read_group([('outsourcing_id', 'not in', outsourcings.ids)],
+                                                                ['outsourcing_id'], ['outsourcing_id'])
+        for group in outsourcing_groups:
+            proj_id = group['outsourcing_id'][0] if group['outsourcing_id'] else False
+            proj_name = group['outsourcing_id'][1] if group['outsourcing_id'] else _('Others')
             searchbar_filters.update({
-                str(proj_id): {'label': proj_name, 'domain': [('project_id', '=', proj_id)]}
+                str(proj_id): {'label': proj_name, 'domain': [('outsourcing_id', '=', proj_id)]}
             })
 
         # default sort by value
@@ -150,7 +150,7 @@ class CustomerPortal(CustomerPortal):
         domain = searchbar_filters.get(filterby, searchbar_filters.get('all'))['domain']
 
         # archive groups - Default Group By 'create_date'
-        archive_groups = self._get_archive_groups('project.task', domain) if values.get('my_details') else []
+        archive_groups = self._get_archive_groups('outsourcing.task', domain) if values.get('my_details') else []
         if date_begin and date_end:
             domain += [('create_date', '>', date_begin), ('create_date', '<=', date_end)]
 
@@ -168,7 +168,7 @@ class CustomerPortal(CustomerPortal):
             domain += search_domain
 
         # task count
-        task_count = request.env['project.task'].search_count(domain)
+        task_count = request.env['outsourcing.task'].search_count(domain)
         # pager
         pager = portal_pager(
             url="/my/tasks",
@@ -178,12 +178,12 @@ class CustomerPortal(CustomerPortal):
             step=self._items_per_page
         )
         # content according to pager and archive selected
-        if groupby == 'project':
-            order = "project_id, %s" % order  # force sort on project first to group by project in view
-        tasks = request.env['project.task'].search(domain, order=order, limit=self._items_per_page, offset=(page - 1) * self._items_per_page)
+        if groupby == 'outsourcing':
+            order = "outsourcing_id, %s" % order  # force sort on outsourcing first to group by outsourcing in view
+        tasks = request.env['outsourcing.task'].search(domain, order=order, limit=self._items_per_page, offset=(page - 1) * self._items_per_page)
         request.session['my_tasks_history'] = tasks.ids[:100]
-        if groupby == 'project':
-            grouped_tasks = [request.env['project.task'].concat(*g) for k, g in groupbyelem(tasks, itemgetter('project_id'))]
+        if groupby == 'outsourcing':
+            grouped_tasks = [request.env['outsourcing.task'].concat(*g) for k, g in groupbyelem(tasks, itemgetter('outsourcing_id'))]
         else:
             grouped_tasks = [tasks]
 
@@ -204,12 +204,12 @@ class CustomerPortal(CustomerPortal):
             'searchbar_filters': OrderedDict(sorted(searchbar_filters.items())),
             'filterby': filterby,
         })
-        return request.render("project.portal_my_tasks", values)
+        return request.render("outsourcing.portal_my_tasks", values)
 
     @http.route(['/my/task/<int:task_id>'], type='http', auth="public", website=True)
     def portal_my_task(self, task_id, access_token=None, **kw):
         try:
-            task_sudo = self._document_check_access('project.task', task_id, access_token)
+            task_sudo = self._document_check_access('outsourcing.task', task_id, access_token)
         except (AccessError, MissingError):
             return request.redirect('/my')
 
@@ -217,4 +217,4 @@ class CustomerPortal(CustomerPortal):
         for attachment in task_sudo.attachment_ids:
             attachment.generate_access_token()
         values = self._task_get_page_view_values(task_sudo, access_token, **kw)
-        return request.render("project.portal_my_task", values)
+        return request.render("outsourcing.portal_my_task", values)

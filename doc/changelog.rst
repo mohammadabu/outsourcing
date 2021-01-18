@@ -8,9 +8,9 @@ Changelog
 
 - Stage/state update
 
-  - ``project.task``: removed inheritance from ``base_stage`` class and removed
+  - ``outsourcing.task``: removed inheritance from ``base_stage`` class and removed
     ``state`` field. Added ``date_last_stage_update`` field holding last stage_id
     modification. Updated reports.
-  - ``project.task.type``: removed ``state`` field.
+  - ``outsourcing.task.type``: removed ``state`` field.
 
-- Removed ``project.task.reevaluate`` wizard.
+- Removed ``outsourcing.task.reevaluate`` wizard.

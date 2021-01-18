@@ -1,13 +1,13 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# * project
+# * outsourcing
 #
 # Translators:
 # Aleksandar Vangelovski <aleksandarv@hbee.eu>, 2016
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo 9.0\n"
+"outsourcing-Id-Version: Odoo 9.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-08-18 14:06+0000\n"
 "PO-Revision-Date: 2016-06-08 13:24+0000\n"
@@ -23,11 +23,11 @@ msgstr ""
 "#-#-#-#-#  mk.po (Odoo 9.0)  #-#-#-#-#\n"
 "Plural-Forms: nplurals=2; plural=(n % 10 == 1 && n % 100 != 11) ? 0 : 1;\n"
 
-#. module: project
-#: model:mail.template,body_html:project.mail_template_data_module_install_project
+#. module: outsourcing
+#: model:mail.template,body_html:outsourcing.mail_template_data_module_install_outsourcing
 msgid ""
 "\n"
-"            % set last_created_project = user.env['project.project']."
+"            % set last_created_outsourcing = user.env['outsourcing.outsourcing']."
 "search([], order=\"create_date desc\")[0]\n"
 "\n"
 "            <div style=\"margin: 10px auto;\">\n"
@@ -57,7 +57,7 @@ msgid ""
 "p><br>\n"
 "                            <p dir=\"ltr\" style=\"font-size:15px;margin-"
 "top:0pt;margin-bottom:0pt;\">\n"
-"                                <span>Your Odoo Project application is up "
+"                                <span>Your Odoo outsourcing application is up "
 "and running</span></p><br>\n"
 "                            <p dir=\"ltr\" style=\"margin-top:0pt;margin-"
 "bottom:8pt;\">\n"
@@ -71,11 +71,11 @@ msgid ""
 "                                        <span>Try creating a task by sending "
 "an email to </span>\n"
 "                                        <a href=\"mailto:"
-"${last_created_project.alias_id.name_get()[0][1] if last_created_project."
+"${last_created_outsourcing.alias_id.name_get()[0][1] if last_created_outsourcing."
 "alias_id.alias_domain else user.company_id.email}\">\n"
 "                                            <span style=\"font-weight:bold; "
-"text-decoration:underline;\">${last_created_project.alias_id.name_get()[0]"
-"[1] if last_created_project.alias_id.alias_domain else user.company_id.email}"
+"text-decoration:underline;\">${last_created_outsourcing.alias_id.name_get()[0]"
+"[1] if last_created_outsourcing.alias_id.alias_domain else user.company_id.email}"
 "</span>\n"
 "                                        </a>\n"
 "                                    </p>\n"
@@ -96,14 +96,14 @@ msgid ""
 "                                <span style=\"font-weight:bold;\">Discover "
 "the </span>\n"
 "                                <span><a href=\"/"
-"web#view_type=kanban&model=project.project&action=project."
-"open_view_project_all\">\n"
+"web#view_type=kanban&model=outsourcing.outsourcing&action=outsourcing."
+"open_view_outsourcing_all\">\n"
 "                                    <span style=\"font-weight:bold; text-"
-"decoration:underline;\">project planner</span></a></span>\n"
+"decoration:underline;\">outsourcing planner</span></a></span>\n"
 "                                <span> to activate extra features</span>\n"
 "                                <span style=\"color:#a24689;margin:0;font-"
 "weight:bold\">(${user.env['web.planner']."
-"get_planner_progress('planner_project')}% done)</span>\n"
+"get_planner_progress('planner_outsourcing')}% done)</span>\n"
 "                            </p>\n"
 "                            <ul style=\"margin-top:0pt;margin-bottom:0pt;"
 "font-size:13px;list-style-type:disc;\">\n"
@@ -158,10 +158,10 @@ msgid ""
 "\"text-decoration:underline;\">\n"
 "                                help@odoo.com</span></a> if you have any "
 "question. You can also discover \n"
-"                                how to get the best out of Odoo Project with "
+"                                how to get the best out of Odoo outsourcing with "
 "our </span>\n"
 "                                <a href=\"https://www.odoo.com/documentation/"
-"user/9.0/project.html\">\n"
+"user/9.0/outsourcing.html\">\n"
 "                                <span style=\"text-decoration:underline;"
 "\">User Documentation</span></a>\n"
 "                                </span><span> or with our </span>\n"
@@ -186,8 +186,8 @@ msgid ""
 "        </div>"
 msgstr ""
 
-#. module: project
-#: model:mail.template,body_html:project.mail_template_data_project_task
+#. module: outsourcing
+#: model:mail.template,body_html:outsourcing.mail_template_data_outsourcing_task
 msgid ""
 "\n"
 "<p>Dear ${object.partner_id.name or 'customer'},</p>\n"
@@ -196,92 +196,92 @@ msgid ""
 "<p>Best regards,</p>"
 msgstr ""
 
-#. module: project
-#: model:ir.model.fields,field_description:project.field_res_partner_task_count
+#. module: outsourcing
+#: model:ir.model.fields,field_description:outsourcing.field_res_partner_task_count
 msgid "# Tasks"
 msgstr "# Задачи"
 
-#. module: project
-#: model:ir.model.fields,field_description:project.field_report_project_task_user_no_of_days
+#. module: outsourcing
+#: model:ir.model.fields,field_description:outsourcing.field_report_outsourcing_task_user_no_of_days
 msgid "# of Days"
 msgstr "# од денови"
 
-#. module: project
-#: model:ir.model.fields,field_description:project.field_project_task_history_cumulative_nbr_tasks
-#: model:ir.model.fields,field_description:project.field_report_project_task_user_nbr
+#. module: outsourcing
+#: model:ir.model.fields,field_description:outsourcing.field_outsourcing_task_history_cumulative_nbr_tasks
+#: model:ir.model.fields,field_description:outsourcing.field_report_outsourcing_task_user_nbr
 msgid "# of Tasks"
 msgstr "# од Задачи"
 
-#. module: project
-#: code:addons/project/project.py:273 code:addons/project/project.py:294
-#: code:addons/project/project.py:446
+#. module: outsourcing
+#: code:addons/outsourcing/outsourcing.py:273 code:addons/outsourcing/outsourcing.py:294
+#: code:addons/outsourcing/outsourcing.py:446
 #, python-format
 msgid "%s (copy)"
 msgstr "%s (копија)"
 
-#. module: project
-#: model_terms:ir.ui.view,arch_db:project.edit_project
+#. module: outsourcing
+#: model_terms:ir.ui.view,arch_db:outsourcing.edit_outsourcing
 msgid ""
-"(Un)archiving a project automatically (un)archives its tasks and issues. Do "
+"(Un)archiving a outsourcing automatically (un)archives its tasks and issues. Do "
 "you want to proceed?"
 msgstr ""
 "Исклучувањето на проект од архива, автоматски ги исклучува задачите и "
 "проблемите поврзани со тој проект. Дали сте сигурни дека сакате да "
 "продолжете?()()"
 
-#. module: project
-#: model_terms:ir.ui.view,arch_db:project.project_planner
+#. module: outsourcing
+#: model_terms:ir.ui.view,arch_db:outsourcing.outsourcing_planner
 msgid "- The Odoo Team"
 msgstr "- Odoo тимот"
 
-#. module: project
-#: model_terms:ir.ui.view,arch_db:project.project_planner
+#. module: outsourcing
+#: model_terms:ir.ui.view,arch_db:outsourcing.outsourcing_planner
 msgid "1. Learn about Tasks, Issues and Timesheets."
 msgstr "1. Научи за задачи, проблеми и работни таблици."
 
-#. module: project
-#: model_terms:ir.ui.view,arch_db:project.project_planner
+#. module: outsourcing
+#: model_terms:ir.ui.view,arch_db:outsourcing.outsourcing_planner
 msgid ""
-"2. Now, take some time to list <strong>the Projects you'll need:</strong>"
+"2. Now, take some time to list <strong>the outsourcings you'll need:</strong>"
 msgstr ""
 "2. Одвоете малку време за да ги наброете <strong> проектите кои ви се "
 "потребни </strong>"
 
-#. module: project
-#: model_terms:ir.ui.view,arch_db:project.project_planner
+#. module: outsourcing
+#: model_terms:ir.ui.view,arch_db:outsourcing.outsourcing_planner
 msgid "<i class=\"fa fa-user\"/> Person Responsible"
 msgstr "<i class=\"fa fa-user\"/> Одговорно лице"
 
-#. module: project
-#: code:addons/project/project.py:151
+#. module: outsourcing
+#: code:addons/outsourcing/outsourcing.py:151
 #, python-format
 msgid ""
 "<p class=\"oe_view_nocontent_create\">\n"
 "                        Documents are attached to the tasks and issues of "
-"your project.</p><p>\n"
+"your outsourcing.</p><p>\n"
 "                        Send messages or log internal notes with attachments "
 "to link\n"
-"                        documents to your project.\n"
+"                        documents to your outsourcing.\n"
 "                    </p>"
 msgstr ""
 
-#. module: project
-#: model_terms:ir.ui.view,arch_db:project.edit_project
+#. module: outsourcing
+#: model_terms:ir.ui.view,arch_db:outsourcing.edit_outsourcing
 msgid "<span attrs=\"{'invisible':[('use_tasks', '=', False)]}\">as </span>"
 msgstr ""
 
-#. module: project
-#: model_terms:ir.ui.view,arch_db:project.project_planner
+#. module: outsourcing
+#: model_terms:ir.ui.view,arch_db:outsourcing.outsourcing_planner
 msgid "<span class=\"fa fa-arrow-circle-o-down\"/> Install now"
 msgstr "<span class=\"fa fa-arrow-circle-o-down\"/> Инсталирај сега"
 
-#. module: project
-#: model_terms:ir.ui.view,arch_db:project.project_planner
+#. module: outsourcing
+#: model_terms:ir.ui.view,arch_db:outsourcing.outsourcing_planner
 msgid "<span class=\"fa fa-comment-o\"/> Website Live Chat"
 msgstr "<span class=\"fa fa-comment-o\"/> Чат во живо на вебстрана"
 
-#. module: project
-#: model_terms:ir.ui.view,arch_db:project.project_planner
+#. module: outsourcing
+#: model_terms:ir.ui.view,arch_db:outsourcing.outsourcing_planner
 msgid "<span class=\"fa fa-comment-o\"/> Website Live Chat on"
 msgstr "<span class=\"fa fa-comment-o\"/> Чат во живо на вебстрана на"
 

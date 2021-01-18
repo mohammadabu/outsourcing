@@ -7,15 +7,15 @@ from odoo import http
 from odoo.http import request
 
 
-class RatingProject(http.Controller):
+class Ratingoutsourcing(http.Controller):
 
-    @http.route(['/project/rating'], type='http', auth="public", website=True)
+    @http.route(['/outsourcing/rating'], type='http', auth="public", website=True)
     def index(self, **kw):
-        projects = request.env['project.project'].sudo().search([('rating_status', '!=', 'no'), ('portal_show_rating', '=', True)])
-        values = {'projects': projects}
-        return request.render('project.rating_index', values)
+        outsourcings = request.env['outsourcing.outsourcing'].sudo().search([('rating_status', '!=', 'no'), ('portal_show_rating', '=', True)])
+        values = {'outsourcings': outsourcings}
+        return request.render('outsourcing.rating_index', values)
 
-    def _calculate_period_partner_stats(self, project_id):
+    def _calculate_period_partner_stats(self, outsourcing_id):
         # get raw data: number of rating by rated partner, by rating value, by period
         request.env.cr.execute("""
             SELECT
@@ -31,15 +31,15 @@ class RatingProject(http.Controller):
             FROM
                 rating_rating
             WHERE
-                parent_res_model = 'project.project'
+                parent_res_model = 'outsourcing.outsourcing'
                     AND parent_res_id = %s
-                    AND res_model = 'project.task'
+                    AND res_model = 'outsourcing.task'
                     AND rated_partner_id IS NOT NULL
                     AND write_date >= current_date - interval '90' day
                     AND rating IN (1,5,10)
             GROUP BY
                 rated_partner_id, rating, period
-        """, (project_id, ))
+        """, (outsourcing_id, ))
 
         raw_data = request.env.cr.dictfetchall()
 
@@ -76,17 +76,17 @@ class RatingProject(http.Controller):
             'period_statistics': period_statistics,
         }
 
-    @http.route(['/project/rating/<int:project_id>'], type='http', auth="public", website=True)
-    def page(self, project_id=None, **kw):
+    @http.route(['/outsourcing/rating/<int:outsourcing_id>'], type='http', auth="public", website=True)
+    def page(self, outsourcing_id=None, **kw):
         user = request.env.user
-        project = request.env['project.project'].sudo().browse(project_id)
-        # to avoid giving any access rights on projects to the public user, let's use sudo
-        # and check if the user should be able to view the project (project managers only if it's unpublished or has no rating)
-        if not ((project.rating_status != 'no') and project.portal_show_rating) and not user.with_user(user).has_group('project.group_project_manager'):
+        outsourcing = request.env['outsourcing.outsourcing'].sudo().browse(outsourcing_id)
+        # to avoid giving any access rights on outsourcings to the public user, let's use sudo
+        # and check if the user should be able to view the outsourcing (outsourcing managers only if it's unpublished or has no rating)
+        if not ((outsourcing.rating_status != 'no') and outsourcing.portal_show_rating) and not user.with_user(user).has_group('outsourcing.group_outsourcing_manager'):
             raise NotFound()
 
-        return request.render('project.rating_project_rating_page', {
-            'project': project,
-            'ratings': request.env['rating.rating'].sudo().search([('consumed', '=', True), ('parent_res_model', '=', 'project.project'), ('parent_res_id', '=', project_id)], order='write_date DESC', limit=50),
-            'statistics': self._calculate_period_partner_stats(project_id),
+        return request.render('outsourcing.rating_outsourcing_rating_page', {
+            'outsourcing': outsourcing,
+            'ratings': request.env['rating.rating'].sudo().search([('consumed', '=', True), ('parent_res_model', '=', 'outsourcing.outsourcing'), ('parent_res_id', '=', outsourcing_id)], order='write_date DESC', limit=50),
+            'statistics': self._calculate_period_partner_stats(outsourcing_id),
         })
