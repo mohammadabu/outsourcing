@@ -24,9 +24,9 @@ class res_users_rule(models.Model):
 
     project_rule = fields.Many2many(compute='_task_rule_calc', comodel_name='outsourcing.outsourcing')
     def _task_rule_calc(self):
-        outsourcing = self.env['outsourcing.outsourcing'].search([('user_id','=',self.env.uid)])
-        stage_ids = []
+        outsourcing = self.env['outsourcing.outsourcing'].sudo().search([('user_id','=',self.env.uid)])
+        stage_ids = [4]
         for val in outsourcing:
             stage_ids.append(val.id)
         for rec in self:
-            rec.project_rule = []
+            rec.project_rule = stage_ids
