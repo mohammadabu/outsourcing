@@ -34,9 +34,9 @@
         'views/outsourcing_assets.xml',
         'views/outsourcing_portal_templates.xml',
         'views/outsourcing_rating_templates.xml',
-        # 'data/digest_data.xml',
-        # 'data/outsourcing_mail_template_data.xml',
-        # 'data/outsourcing_data.xml',
+        'data/digest_data.xml',
+        'data/outsourcing_mail_template_data.xml',
+        'data/outsourcing_data.xml',
     ],
     # 'demo': ['data/outsourcing_demo.xml'],
     'test': [
