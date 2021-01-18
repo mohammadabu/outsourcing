@@ -4,10 +4,10 @@
 from odoo import fields, models, tools
 
 
-class ReportProjectTaskUser(models.Model):
-    _name = "report.project.task.user"
+class ReportoutsourcingTaskUser(models.Model):
+    _name = "report.outsourcing.task.user"
     _description = "Tasks Analysis"
-    _order = 'name desc, project_id'
+    _order = 'name desc, outsourcing_id'
     _auto = False
 
     name = fields.Char(string='Task Title', readonly=True)
@@ -16,7 +16,7 @@ class ReportProjectTaskUser(models.Model):
     date_end = fields.Datetime(string='Ending Date', readonly=True)
     date_deadline = fields.Date(string='Deadline', readonly=True)
     date_last_stage_update = fields.Datetime(string='Last Stage Update', readonly=True)
-    project_id = fields.Many2one('project.project', string='Project', readonly=True)
+    outsourcing_id = fields.Many2one('outsourcing.outsourcing', string='outsourcing', readonly=True)
     working_days_close = fields.Float(string='# Working Days to Close',
         digits=(16,2), readonly=True, group_operator="avg",
         help="Number of Working Days to close the task")
@@ -37,7 +37,7 @@ class ReportProjectTaskUser(models.Model):
         ], string='Kanban State', readonly=True)
     company_id = fields.Many2one('res.company', string='Company', readonly=True)
     partner_id = fields.Many2one('res.partner', string='Customer', readonly=True)
-    stage_id = fields.Many2one('project.task.type', string='Stage', readonly=True)
+    stage_id = fields.Many2one('outsourcing.task.type', string='Stage', readonly=True)
 
     def _select(self):
         select_str = """
@@ -49,7 +49,7 @@ class ReportProjectTaskUser(models.Model):
                     t.date_last_stage_update as date_last_stage_update,
                     t.date_deadline as date_deadline,
                     t.user_id,
-                    t.project_id,
+                    t.outsourcing_id,
                     t.priority,
                     t.name as name,
                     t.company_id,
@@ -73,7 +73,7 @@ class ReportProjectTaskUser(models.Model):
                     t.date_deadline,
                     t.date_last_stage_update,
                     t.user_id,
-                    t.project_id,
+                    t.outsourcing_id,
                     t.priority,
                     t.name,
                     t.company_id,
@@ -87,7 +87,7 @@ class ReportProjectTaskUser(models.Model):
         self._cr.execute("""
             CREATE view %s as
               %s
-              FROM project_task t
+              FROM outsourcing_task t
                 WHERE t.active = 'true'
                 %s
         """ % (self._table, self._select(), self._group_by()))

@@ -1,4 +1,4 @@
-odoo.define('project.task_kanban_examples', function (require) {
+odoo.define('outsourcing.task_kanban_examples', function (require) {
 'use strict';
 
 var core = require('web.core');
@@ -31,7 +31,7 @@ function escFormat() {
     };
 }
 
-kanbanExamplesRegistry.add('project', {
+kanbanExamplesRegistry.add('outsourcing', {
     ghostColumns: [_lt('New'), _lt('Assigned'), _lt('In Progress'), _lt('Done')],
     examples:[{
         name: _lt('Software Development'),
@@ -68,18 +68,18 @@ kanbanExamplesRegistry.add('project', {
             'Month" column.'),
     }, {
         name: _lt('Consulting'),
-        columns: [_lt('New Projects'), _lt('Resources Allocation'), _lt('In Progress'), _lt('Done')],
-        description: escFormat(_lt('Manage the lifecycle of your project using the kanban view. Add newly acquired project, assign them and use the %s and %s to define if the project is ready for the next step.'), greenBullet, redBullet),
+        columns: [_lt('New outsourcings'), _lt('Resources Allocation'), _lt('In Progress'), _lt('Done')],
+        description: escFormat(_lt('Manage the lifecycle of your outsourcing using the kanban view. Add newly acquired outsourcing, assign them and use the %s and %s to define if the outsourcing is ready for the next step.'), greenBullet, redBullet),
         bullets: [greenBullet, redBullet],
     }, {
-        name: _lt('Research Project'),
+        name: _lt('Research outsourcing'),
         columns: [_lt('Brainstorm'), _lt('Research'), _lt('Draft'), _lt('Final Document')],
-        description: escFormat(_lt('Handle your idea gathering within Tasks of your new Project and discuss them in the chatter of the tasks. Use the %s and %s to signalize what is the current status of your Idea'), greenBullet, redBullet),
+        description: escFormat(_lt('Handle your idea gathering within Tasks of your new outsourcing and discuss them in the chatter of the tasks. Use the %s and %s to signalize what is the current status of your Idea'), greenBullet, redBullet),
         bullets: [greenBullet, redBullet],
     }, {
         name: _lt('Website Redesign'),
         columns: [_lt('Page Ideas'), _lt('Copywriting'), _lt('Design'), _lt('Live')],
-        description: escFormat(_lt('Handle your idea gathering within Tasks of your new Project and discuss them in the chatter of the tasks. Use the %s and %s to signalize what is the current status of your Idea'), greenBullet, redBullet),
+        description: escFormat(_lt('Handle your idea gathering within Tasks of your new outsourcing and discuss them in the chatter of the tasks. Use the %s and %s to signalize what is the current status of your Idea'), greenBullet, redBullet),
     }, {
         name: _lt('T-shirt Printing'),
         columns: [_lt('New Orders'), _lt('Logo Design'), _lt('To Print'), _lt('Done')],

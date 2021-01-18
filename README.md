@@ -1,19 +1,19 @@
-Project Management
+outsourcing Management
 ------------------
 
 ### Infinitely flexible. Incredibly easy to use.
 
 
-Odoo's collaborative and realtime <a href="https://www.odoo.com/page/project-management">open source project management</a>
+Odoo's collaborative and realtime <a href="https://www.odoo.com/page/outsourcing-management">open source outsourcing management</a>
 helps your team get work done. Keep track of everything, from the big picture
 to the minute details, from the customer contract to the billing.
 
 Designed to fit your own process
 --------------------------------
 
-Organize projects around your own processes. Work on tasks and issues using the
+Organize outsourcings around your own processes. Work on tasks and issues using the
 kanban view, schedule tasks using the gantt chart and control deadlines in the
-calendar view. Every project may have it's own stages allowing teams to
+calendar view. Every outsourcing may have it's own stages allowing teams to
 optimize their job.
 
 Easy to use
@@ -57,13 +57,13 @@ requires your attention.
 Timesheets, Contracts & Invoicing
 ---------------------------------
 
-Projects are automatically integrated with customer contracts allowing you to
+outsourcings are automatically integrated with customer contracts allowing you to
 invoice based on time & materials and record timesheets easily.
 
 Track Issues
 ------------
 
-Single out the issues that arise in a project in order to have a better focus
+Single out the issues that arise in a outsourcing in order to have a better focus
 on resolving them. Integrate customer interaction on every issue and get
 accurate reports on your team's performance.
 

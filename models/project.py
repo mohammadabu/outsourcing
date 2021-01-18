@@ -9,20 +9,20 @@ from odoo.tools.safe_eval import safe_eval
 from odoo.tools.misc import format_date
 
 
-class ProjectTaskType(models.Model):
-    _name = 'project.task.type'
+class outsourcingTaskType(models.Model):
+    _name = 'outsourcing.task.type'
     _description = 'Task Stage'
     _order = 'sequence, id'
 
-    def _get_default_project_ids(self):
-        default_project_id = self.env.context.get('default_project_id')
-        return [default_project_id] if default_project_id else None
+    def _get_default_outsourcing_ids(self):
+        default_outsourcing_id = self.env.context.get('default_outsourcing_id')
+        return [default_outsourcing_id] if default_outsourcing_id else None
 
     name = fields.Char(string='Stage Name', required=True, translate=True)
     description = fields.Text(translate=True)
     sequence = fields.Integer(default=1)
-    project_ids = fields.Many2many('project.project', 'project_task_type_rel', 'type_id', 'project_id', string='Projects',
-        default=_get_default_project_ids)
+    outsourcing_ids = fields.Many2many('outsourcing.outsourcing', 'outsourcing_task_type_rel', 'type_id', 'outsourcing_id', string='outsourcings',
+        default=_get_default_outsourcing_ids)
     legend_blocked = fields.Char(
         'Red Kanban Label', default=lambda s: _('Blocked'), translate=True, required=True,
         help='Override the default value displayed for the blocked state for kanban selection, when the task or issue is in that stage.')
@@ -35,15 +35,15 @@ class ProjectTaskType(models.Model):
     mail_template_id = fields.Many2one(
         'mail.template',
         string='Email Template',
-        domain=[('model', '=', 'project.task')],
+        domain=[('model', '=', 'outsourcing.task')],
         help="If set an email will be sent to the customer when the task or issue reaches this step.")
     fold = fields.Boolean(string='Folded in Kanban',
         help='This stage is folded in the kanban view when there are no records in that stage to display.')
     rating_template_id = fields.Many2one(
         'mail.template',
         string='Rating Email Template',
-        domain=[('model', '=', 'project.task')],
-        help="If set and if the project's rating configuration is 'Rating when changing stage', then an email will be sent to the customer when the task reaches this step.")
+        domain=[('model', '=', 'outsourcing.task')],
+        help="If set and if the outsourcing's rating configuration is 'Rating when changing stage', then an email will be sent to the customer when the task reaches this step.")
     auto_validation_kanban_state = fields.Boolean('Automatic kanban status', default=False,
         help="Automatically modify the kanban state when the customer replies to the feedback for this stage.\n"
             " * A good feedback from the customer will update the kanban state to 'ready for the new stage' (green bullet).\n"
@@ -51,19 +51,19 @@ class ProjectTaskType(models.Model):
 
     def unlink(self):
         stages = self
-        default_project_id = self.env.context.get('default_project_id')
-        if default_project_id:
-            shared_stages = self.filtered(lambda x: len(x.project_ids) > 1 and default_project_id in x.project_ids.ids)
-            tasks = self.env['project.task'].with_context(active_test=False).search([('project_id', '=', default_project_id), ('stage_id', 'in', self.ids)])
+        default_outsourcing_id = self.env.context.get('default_outsourcing_id')
+        if default_outsourcing_id:
+            shared_stages = self.filtered(lambda x: len(x.outsourcing_ids) > 1 and default_outsourcing_id in x.outsourcing_ids.ids)
+            tasks = self.env['outsourcing.task'].with_context(active_test=False).search([('outsourcing_id', '=', default_outsourcing_id), ('stage_id', 'in', self.ids)])
             if shared_stages and not tasks:
-                shared_stages.write({'project_ids': [(3, default_project_id)]})
+                shared_stages.write({'outsourcing_ids': [(3, default_outsourcing_id)]})
                 stages = self.filtered(lambda x: x not in shared_stages)
-        return super(ProjectTaskType, stages).unlink()
+        return super(outsourcingTaskType, stages).unlink()
 
 
-class Project(models.Model):
-    _name = "project.project"
-    _description = "Project"
+class outsourcing(models.Model):
+    _name = "outsourcing.outsourcing"
+    _description = "outsourcing"
     _inherit = ['portal.mixin', 'mail.alias.mixin', 'mail.thread', 'rating.parent.mixin']
     _order = "sequence, name, id"
     _period_number = 5
@@ -71,29 +71,29 @@ class Project(models.Model):
     _check_company_auto = True
 
     def get_alias_model_name(self, vals):
-        return vals.get('alias_model', 'project.task')
+        return vals.get('alias_model', 'outsourcing.task')
 
     def get_alias_values(self):
-        values = super(Project, self).get_alias_values()
-        values['alias_defaults'] = {'project_id': self.id}
+        values = super(outsourcing, self).get_alias_values()
+        values['alias_defaults'] = {'outsourcing_id': self.id}
         return values
 
     def _compute_attached_docs_count(self):
         Attachment = self.env['ir.attachment']
-        for project in self:
-            project.doc_count = Attachment.search_count([
+        for outsourcing in self:
+            outsourcing.doc_count = Attachment.search_count([
                 '|',
                 '&',
-                ('res_model', '=', 'project.project'), ('res_id', '=', project.id),
+                ('res_model', '=', 'outsourcing.outsourcing'), ('res_id', '=', outsourcing.id),
                 '&',
-                ('res_model', '=', 'project.task'), ('res_id', 'in', project.task_ids.ids)
+                ('res_model', '=', 'outsourcing.task'), ('res_id', 'in', outsourcing.task_ids.ids)
             ])
 
     def _compute_task_count(self):
-        task_data = self.env['project.task'].read_group([('project_id', 'in', self.ids), '|', ('stage_id.fold', '=', False), ('stage_id', '=', False)], ['project_id'], ['project_id'])
-        result = dict((data['project_id'][0], data['project_id_count']) for data in task_data)
-        for project in self:
-            project.task_count = result.get(project.id, 0)
+        task_data = self.env['outsourcing.task'].read_group([('outsourcing_id', 'in', self.ids), '|', ('stage_id.fold', '=', False), ('stage_id', '=', False)], ['outsourcing_id'], ['outsourcing_id'])
+        result = dict((data['outsourcing_id'][0], data['outsourcing_id_count']) for data in task_data)
+        for outsourcing in self:
+            outsourcing.task_count = result.get(outsourcing.id, 0)
 
     def attachment_tree_view(self):
         attachment_action = self.env.ref('base.action_attachment')
@@ -101,93 +101,93 @@ class Project(models.Model):
         action['domain'] = str([
             '|',
             '&',
-            ('res_model', '=', 'project.project'),
+            ('res_model', '=', 'outsourcing.outsourcing'),
             ('res_id', 'in', self.ids),
             '&',
-            ('res_model', '=', 'project.task'),
+            ('res_model', '=', 'outsourcing.task'),
             ('res_id', 'in', self.task_ids.ids)
         ])
         action['context'] = "{'default_res_model': '%s','default_res_id': %d}" % (self._name, self.id)
         return action
 
     @api.model
-    def activate_sample_project(self):
-        """ Unarchives the sample project 'project.project_project_data' and
-            reloads the project dashboard """
-        # Unarchive sample project
-        project = self.env.ref('project.project_project_data', False)
-        if project:
-            project.write({'active': True})
+    def activate_sample_outsourcing(self):
+        """ Unarchives the sample outsourcing 'outsourcing.outsourcing_outsourcing_data' and
+            reloads the outsourcing dashboard """
+        # Unarchive sample outsourcing
+        outsourcing = self.env.ref('outsourcing.outsourcing_outsourcing_data', False)
+        if outsourcing:
+            outsourcing.write({'active': True})
 
-        cover_image = self.env.ref('project.msg_task_data_14_attach', False)
-        cover_task = self.env.ref('project.project_task_data_14', False)
+        cover_image = self.env.ref('outsourcing.msg_task_data_14_attach', False)
+        cover_task = self.env.ref('outsourcing.outsourcing_task_data_14', False)
         if cover_image and cover_task:
             cover_task.write({'displayed_image_id': cover_image.id})
 
-        # Change the help message on the action (no more activate project)
-        action = self.env.ref('project.open_view_project_all', False)
+        # Change the help message on the action (no more activate outsourcing)
+        action = self.env.ref('outsourcing.open_view_outsourcing_all', False)
         action_data = None
         if action:
             action.sudo().write({
                 "help": _('''<p class="o_view_nocontent_smiling_face">
-                    Create a new project</p>''')
+                    Create a new outsourcing</p>''')
             })
             action_data = action.read()[0]
         # Reload the dashboard
         return action_data
 
     def _compute_is_favorite(self):
-        for project in self:
-            project.is_favorite = self.env.user in project.favorite_user_ids
+        for outsourcing in self:
+            outsourcing.is_favorite = self.env.user in outsourcing.favorite_user_ids
 
     def _inverse_is_favorite(self):
-        favorite_projects = not_fav_projects = self.env['project.project'].sudo()
-        for project in self:
-            if self.env.user in project.favorite_user_ids:
-                favorite_projects |= project
+        favorite_outsourcings = not_fav_outsourcings = self.env['outsourcing.outsourcing'].sudo()
+        for outsourcing in self:
+            if self.env.user in outsourcing.favorite_user_ids:
+                favorite_outsourcings |= outsourcing
             else:
-                not_fav_projects |= project
+                not_fav_outsourcings |= outsourcing
 
-        # Project User has no write access for project.
-        not_fav_projects.write({'favorite_user_ids': [(4, self.env.uid)]})
-        favorite_projects.write({'favorite_user_ids': [(3, self.env.uid)]})
+        # outsourcing User has no write access for outsourcing.
+        not_fav_outsourcings.write({'favorite_user_ids': [(4, self.env.uid)]})
+        favorite_outsourcings.write({'favorite_user_ids': [(3, self.env.uid)]})
 
     def _get_default_favorite_user_ids(self):
         return [(6, 0, [self.env.uid])]
 
     name = fields.Char("Name", index=True, required=True, tracking=True)
     active = fields.Boolean(default=True,
-        help="If the active field is set to False, it will allow you to hide the project without removing it.")
-    sequence = fields.Integer(default=10, help="Gives the sequence order when displaying a list of Projects.")
+        help="If the active field is set to False, it will allow you to hide the outsourcing without removing it.")
+    sequence = fields.Integer(default=10, help="Gives the sequence order when displaying a list of outsourcings.")
     partner_id = fields.Many2one('res.partner', string='Customer', auto_join=True, tracking=True, domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]")
     company_id = fields.Many2one('res.company', string='Company', required=True, default=lambda self: self.env.company)
     currency_id = fields.Many2one('res.currency', related="company_id.currency_id", string="Currency", readonly=True)
     analytic_account_id = fields.Many2one('account.analytic.account', string="Analytic Account", copy=False, ondelete='set null',
         domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]", check_company=True,
-        help="Analytic account to which this project is linked for financial management. "
-             "Use an analytic account to record cost and revenue on your project.")
+        help="Analytic account to which this outsourcing is linked for financial management. "
+             "Use an analytic account to record cost and revenue on your outsourcing.")
 
     favorite_user_ids = fields.Many2many(
-        'res.users', 'project_favorite_user_rel', 'project_id', 'user_id',
+        'res.users', 'outsourcing_favorite_user_rel', 'outsourcing_id', 'user_id',
         default=_get_default_favorite_user_ids,
         string='Members')
-    is_favorite = fields.Boolean(compute='_compute_is_favorite', inverse='_inverse_is_favorite', string='Show Project on dashboard',
-        help="Whether this project should be displayed on your dashboard.")
-    label_tasks = fields.Char(string='Use Tasks as', default='Tasks', help="Label used for the tasks of the project.", translate=True)
-    tasks = fields.One2many('project.task', 'project_id', string="Task Activities")
+    is_favorite = fields.Boolean(compute='_compute_is_favorite', inverse='_inverse_is_favorite', string='Show outsourcing on dashboard',
+        help="Whether this outsourcing should be displayed on your dashboard.")
+    label_tasks = fields.Char(string='Use Tasks as', default='Tasks', help="Label used for the tasks of the outsourcing.", translate=True)
+    tasks = fields.One2many('outsourcing.task', 'outsourcing_id', string="Task Activities")
     resource_calendar_id = fields.Many2one(
         'resource.calendar', string='Working Time',
         default=lambda self: self.env.company.resource_calendar_id.id,
         domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]",
         help="Timetable working hours to adjust the gantt diagram report")
-    type_ids = fields.Many2many('project.task.type', 'project_task_type_rel', 'project_id', 'type_id', string='Tasks Stages')
+    type_ids = fields.Many2many('outsourcing.task.type', 'outsourcing_task_type_rel', 'outsourcing_id', 'type_id', string='Tasks Stages')
     task_count = fields.Integer(compute='_compute_task_count', string="Task Count")
-    task_ids = fields.One2many('project.task', 'project_id', string='Tasks',
+    task_ids = fields.One2many('outsourcing.task', 'outsourcing_id', string='Tasks',
                                domain=['|', ('stage_id.fold', '=', False), ('stage_id', '=', False)])
     color = fields.Integer(string='Color Index')
-    user_id = fields.Many2one('res.users', string='Project Manager', default=lambda self: self.env.user, tracking=True)
+    user_id = fields.Many2one('res.users', string='outsourcing Manager', default=lambda self: self.env.user, tracking=True)
     alias_id = fields.Many2one('mail.alias', string='Alias', ondelete="restrict", required=True,
-        help="Internal email associated with this project. Incoming emails are automatically synchronized "
+        help="Internal email associated with this outsourcing. Incoming emails are automatically synchronized "
              "with Tasks (or optionally Issues if the Issue Tracker module is installed).")
     privacy_visibility = fields.Selection([
             ('followers', 'Invited employees'),
@@ -196,17 +196,17 @@ class Project(models.Model):
         ],
         string='Visibility', required=True,
         default='portal',
-        help="Defines the visibility of the tasks of the project:\n"
-                "- Invited employees: employees may only see the followed project and tasks.\n"
-                "- All employees: employees may see all project and tasks.\n"
+        help="Defines the visibility of the tasks of the outsourcing:\n"
+                "- Invited employees: employees may only see the followed outsourcing and tasks.\n"
+                "- All employees: employees may see all outsourcing and tasks.\n"
                 "- Portal users and all employees: employees may see everything."
-                "   Portal users may see project and tasks followed by.\n"
+                "   Portal users may see outsourcing and tasks followed by.\n"
                 "   them or by someone of their company.")
     doc_count = fields.Integer(compute='_compute_attached_docs_count', string="Number of documents attached")
     date_start = fields.Date(string='Start Date')
     date = fields.Date(string='Expiration Date', index=True, tracking=True)
-    subtask_project_id = fields.Many2one('project.project', string='Sub-task Project', ondelete="restrict",
-        help="Project in which sub-tasks of the current project will be created. It can be the current project itself.")
+    subtask_outsourcing_id = fields.Many2one('outsourcing.outsourcing', string='Sub-task outsourcing', ondelete="restrict",
+        help="outsourcing in which sub-tasks of the current outsourcing will be created. It can be the current outsourcing itself.")
 
     # rating fields
     rating_request_deadline = fields.Datetime(compute='_compute_rating_request_deadline', store=True)
@@ -222,45 +222,45 @@ class Project(models.Model):
     portal_show_rating = fields.Boolean('Rating visible publicly', copy=False)
 
     _sql_constraints = [
-        ('project_date_greater', 'check(date >= date_start)', 'Error! project start-date must be lower than project end-date.')
+        ('outsourcing_date_greater', 'check(date >= date_start)', 'Error! outsourcing start-date must be lower than outsourcing end-date.')
     ]
 
     def _compute_access_url(self):
-        super(Project, self)._compute_access_url()
-        for project in self:
-            project.access_url = '/my/project/%s' % project.id
+        super(outsourcing, self)._compute_access_url()
+        for outsourcing in self:
+            outsourcing.access_url = '/my/outsourcing/%s' % outsourcing.id
 
     def _compute_access_warning(self):
-        super(Project, self)._compute_access_warning()
-        for project in self.filtered(lambda x: x.privacy_visibility != 'portal'):
-            project.access_warning = _(
-                "The project cannot be shared with the recipient(s) because the privacy of the project is too restricted. Set the privacy to 'Visible by following customers' in order to make it accessible by the recipient(s).")
+        super(outsourcing, self)._compute_access_warning()
+        for outsourcing in self.filtered(lambda x: x.privacy_visibility != 'portal'):
+            outsourcing.access_warning = _(
+                "The outsourcing cannot be shared with the recipient(s) because the privacy of the outsourcing is too restricted. Set the privacy to 'Visible by following customers' in order to make it accessible by the recipient(s).")
 
     @api.depends('rating_status', 'rating_status_period')
     def _compute_rating_request_deadline(self):
         periods = {'daily': 1, 'weekly': 7, 'bimonthly': 15, 'monthly': 30, 'quarterly': 90, 'yearly': 365}
-        for project in self:
-            project.rating_request_deadline = fields.datetime.now() + timedelta(days=periods.get(project.rating_status_period, 0))
+        for outsourcing in self:
+            outsourcing.rating_request_deadline = fields.datetime.now() + timedelta(days=periods.get(outsourcing.rating_status_period, 0))
 
     @api.model
-    def _map_tasks_default_valeus(self, task, project):
-        """ get the default value for the copied task on project duplication """
+    def _map_tasks_default_valeus(self, task, outsourcing):
+        """ get the default value for the copied task on outsourcing duplication """
         return {
             'stage_id': task.stage_id.id,
             'name': task.name,
-            'company_id': project.company_id.id,
+            'company_id': outsourcing.company_id.id,
         }
 
-    def map_tasks(self, new_project_id):
-        """ copy and map tasks from old to new project """
-        project = self.browse(new_project_id)
-        tasks = self.env['project.task']
+    def map_tasks(self, new_outsourcing_id):
+        """ copy and map tasks from old to new outsourcing """
+        outsourcing = self.browse(new_outsourcing_id)
+        tasks = self.env['outsourcing.task']
         # We want to copy archived task, but do not propagate an active_test context key
-        task_ids = self.env['project.task'].with_context(active_test=False).search([('project_id', '=', self.id)], order='parent_id').ids
+        task_ids = self.env['outsourcing.task'].with_context(active_test=False).search([('outsourcing_id', '=', self.id)], order='parent_id').ids
         old_to_new_tasks = {}
-        for task in self.env['project.task'].browse(task_ids):
+        for task in self.env['outsourcing.task'].browse(task_ids):
             # preserve task name and stage, normally altered during copy
-            defaults = self._map_tasks_default_valeus(task, project)
+            defaults = self._map_tasks_default_valeus(task, outsourcing)
             if task.parent_id:
                 # set the parent to the duplicated task
                 defaults['parent_id'] = old_to_new_tasks.get(task.parent_id.id, False)
@@ -268,7 +268,7 @@ class Project(models.Model):
             old_to_new_tasks[task.id] = new_task.id
             tasks += new_task
 
-        return project.write({'tasks': [(6, 0, tasks.ids)]})
+        return outsourcing.write({'tasks': [(6, 0, tasks.ids)]})
 
     @api.returns('self', lambda value: value.id)
     def copy(self, default=None):
@@ -276,108 +276,108 @@ class Project(models.Model):
             default = {}
         if not default.get('name'):
             default['name'] = _("%s (copy)") % (self.name)
-        project = super(Project, self).copy(default)
-        if self.subtask_project_id == self:
-            project.subtask_project_id = project
+        outsourcing = super(outsourcing, self).copy(default)
+        if self.subtask_outsourcing_id == self:
+            outsourcing.subtask_outsourcing_id = outsourcing
         for follower in self.message_follower_ids:
-            project.message_subscribe(partner_ids=follower.partner_id.ids, subtype_ids=follower.subtype_ids.ids)
+            outsourcing.message_subscribe(partner_ids=follower.partner_id.ids, subtype_ids=follower.subtype_ids.ids)
         if 'tasks' not in default:
-            self.map_tasks(project.id)
-        return project
+            self.map_tasks(outsourcing.id)
+        return outsourcing
 
     @api.model
     def create(self, vals):
-        # Prevent double project creation
+        # Prevent double outsourcing creation
         self = self.with_context(mail_create_nosubscribe=True)
-        project = super(Project, self).create(vals)
-        if not vals.get('subtask_project_id'):
-            project.subtask_project_id = project.id
-        if project.privacy_visibility == 'portal' and project.partner_id:
-            project.message_subscribe(project.partner_id.ids)
-        return project
+        outsourcing = super(outsourcing, self).create(vals)
+        if not vals.get('subtask_outsourcing_id'):
+            outsourcing.subtask_outsourcing_id = outsourcing.id
+        if outsourcing.privacy_visibility == 'portal' and outsourcing.partner_id:
+            outsourcing.message_subscribe(outsourcing.partner_id.ids)
+        return outsourcing
 
     def write(self, vals):
         # directly compute is_favorite to dodge allow write access right
         if 'is_favorite' in vals:
             vals.pop('is_favorite')
             self._fields['is_favorite'].determine_inverse(self)
-        res = super(Project, self).write(vals) if vals else True
+        res = super(outsourcing, self).write(vals) if vals else True
         if 'active' in vals:
-            # archiving/unarchiving a project does it on its tasks, too
+            # archiving/unarchiving a outsourcing does it on its tasks, too
             self.with_context(active_test=False).mapped('tasks').write({'active': vals['active']})
         if vals.get('partner_id') or vals.get('privacy_visibility'):
-            for project in self.filtered(lambda project: project.privacy_visibility == 'portal'):
-                project.message_subscribe(project.partner_id.ids)
+            for outsourcing in self.filtered(lambda outsourcing: outsourcing.privacy_visibility == 'portal'):
+                outsourcing.message_subscribe(outsourcing.partner_id.ids)
         return res
 
     def unlink(self):
-        # Check project is empty
-        for project in self.with_context(active_test=False):
-            if project.tasks:
-                raise UserError(_('You cannot delete a project containing tasks. You can either archive it or first delete all of its tasks.'))
+        # Check outsourcing is empty
+        for outsourcing in self.with_context(active_test=False):
+            if outsourcing.tasks:
+                raise UserError(_('You cannot delete a outsourcing containing tasks. You can either archive it or first delete all of its tasks.'))
         # Delete the empty related analytic account
         analytic_accounts_to_delete = self.env['account.analytic.account']
-        for project in self:
-            if project.analytic_account_id and not project.analytic_account_id.line_ids:
-                analytic_accounts_to_delete |= project.analytic_account_id
-        result = super(Project, self).unlink()
+        for outsourcing in self:
+            if outsourcing.analytic_account_id and not outsourcing.analytic_account_id.line_ids:
+                analytic_accounts_to_delete |= outsourcing.analytic_account_id
+        result = super(outsourcing, self).unlink()
         analytic_accounts_to_delete.unlink()
         return result
 
     def message_subscribe(self, partner_ids=None, channel_ids=None, subtype_ids=None):
-        """ Subscribe to all existing active tasks when subscribing to a project """
-        res = super(Project, self).message_subscribe(partner_ids=partner_ids, channel_ids=channel_ids, subtype_ids=subtype_ids)
-        project_subtypes = self.env['mail.message.subtype'].browse(subtype_ids) if subtype_ids else None
-        task_subtypes = (project_subtypes.mapped('parent_id') | project_subtypes.filtered(lambda sub: sub.internal or sub.default)).ids if project_subtypes else None
+        """ Subscribe to all existing active tasks when subscribing to a outsourcing """
+        res = super(outsourcing, self).message_subscribe(partner_ids=partner_ids, channel_ids=channel_ids, subtype_ids=subtype_ids)
+        outsourcing_subtypes = self.env['mail.message.subtype'].browse(subtype_ids) if subtype_ids else None
+        task_subtypes = (outsourcing_subtypes.mapped('parent_id') | outsourcing_subtypes.filtered(lambda sub: sub.internal or sub.default)).ids if outsourcing_subtypes else None
         if not subtype_ids or task_subtypes:
             self.mapped('tasks').message_subscribe(
                 partner_ids=partner_ids, channel_ids=channel_ids, subtype_ids=task_subtypes)
         return res
 
     def message_unsubscribe(self, partner_ids=None, channel_ids=None):
-        """ Unsubscribe from all tasks when unsubscribing from a project """
+        """ Unsubscribe from all tasks when unsubscribing from a outsourcing """
         self.mapped('tasks').message_unsubscribe(partner_ids=partner_ids, channel_ids=channel_ids)
-        return super(Project, self).message_unsubscribe(partner_ids=partner_ids, channel_ids=channel_ids)
+        return super(outsourcing, self).message_unsubscribe(partner_ids=partner_ids, channel_ids=channel_ids)
 
     # ---------------------------------------------------
     #  Actions
     # ---------------------------------------------------
 
     def toggle_favorite(self):
-        favorite_projects = not_fav_projects = self.env['project.project'].sudo()
-        for project in self:
-            if self.env.user in project.favorite_user_ids:
-                favorite_projects |= project
+        favorite_outsourcings = not_fav_outsourcings = self.env['outsourcing.outsourcing'].sudo()
+        for outsourcing in self:
+            if self.env.user in outsourcing.favorite_user_ids:
+                favorite_outsourcings |= outsourcing
             else:
-                not_fav_projects |= project
+                not_fav_outsourcings |= outsourcing
 
-        # Project User has no write access for project.
-        not_fav_projects.write({'favorite_user_ids': [(4, self.env.uid)]})
-        favorite_projects.write({'favorite_user_ids': [(3, self.env.uid)]})
+        # outsourcing User has no write access for outsourcing.
+        not_fav_outsourcings.write({'favorite_user_ids': [(4, self.env.uid)]})
+        favorite_outsourcings.write({'favorite_user_ids': [(3, self.env.uid)]})
 
     def open_tasks(self):
         ctx = dict(self._context)
-        ctx.update({'search_default_project_id': self.id})
-        action = self.env['ir.actions.act_window'].for_xml_id('project', 'act_project_project_2_project_task_all')
+        ctx.update({'search_default_outsourcing_id': self.id})
+        action = self.env['ir.actions.act_window'].for_xml_id('outsourcing', 'act_outsourcing_outsourcing_2_outsourcing_task_all')
         return dict(action, context=ctx)
 
     def action_view_account_analytic_line(self):
-        """ return the action to see all the analytic lines of the project's analytic account """
+        """ return the action to see all the analytic lines of the outsourcing's analytic account """
         action = self.env.ref('analytic.account_analytic_line_action').read()[0]
         action['context'] = {'default_account_id': self.analytic_account_id.id}
         action['domain'] = [('account_id', '=', self.analytic_account_id.id)]
         return action
 
     def action_view_all_rating(self):
-        """ return the action to see all the rating of the project, and activate default filters """
+        """ return the action to see all the rating of the outsourcing, and activate default filters """
         if self.portal_show_rating:
             return {
                 'type': 'ir.actions.act_url',
                 'name': "Redirect to the Website Projcet Rating Page",
                 'target': 'self',
-                'url': "/project/rating/%s" % (self.id,)
+                'url': "/outsourcing/rating/%s" % (self.id,)
             }
-        action = self.env['ir.actions.act_window'].for_xml_id('project', 'rating_rating_action_view_project_rating')
+        action = self.env['ir.actions.act_window'].for_xml_id('outsourcing', 'rating_rating_action_view_outsourcing_rating')
         action['name'] = _('Ratings of %s') % (self.name,)
         action_context = safe_eval(action['context']) if action['context'] else {}
         action_context.update(self._context)
@@ -400,14 +400,14 @@ class Project(models.Model):
         return analytic_account
 
     def _create_analytic_account(self):
-        for project in self:
+        for outsourcing in self:
             analytic_account = self.env['account.analytic.account'].create({
-                'name': project.name,
-                'company_id': project.company_id.id,
-                'partner_id': project.partner_id.id,
+                'name': outsourcing.name,
+                'company_id': outsourcing.company_id.id,
+                'partner_id': outsourcing.partner_id.id,
                 'active': True,
             })
-            project.write({'analytic_account_id': analytic_account.id})
+            outsourcing.write({'analytic_account_id': analytic_account.id})
 
     # ---------------------------------------------------
     # Rating business
@@ -416,15 +416,15 @@ class Project(models.Model):
     # This method should be called once a day by the scheduler
     @api.model
     def _send_rating_all(self):
-        projects = self.search([('rating_status', '=', 'periodic'), ('rating_request_deadline', '<=', fields.Datetime.now())])
-        for project in projects:
-            project.task_ids._send_task_rating_mail()
-            project._compute_rating_request_deadline()
+        outsourcings = self.search([('rating_status', '=', 'periodic'), ('rating_request_deadline', '<=', fields.Datetime.now())])
+        for outsourcing in outsourcings:
+            outsourcing.task_ids._send_task_rating_mail()
+            outsourcing._compute_rating_request_deadline()
             self.env.cr.commit()
 
 
 class Task(models.Model):
-    _name = "project.task"
+    _name = "outsourcing.task"
     _description = "Task"
     _date_name = "date_assign"
     _inherit = ['portal.mixin', 'mail.thread.cc', 'mail.activity.mixin', 'rating.mixin']
@@ -446,28 +446,28 @@ class Task(models.Model):
 
     @api.model
     def _get_default_partner(self):
-        if 'default_project_id' in self.env.context:
-            default_project_id = self.env['project.project'].browse(self.env.context['default_project_id'])
-            return default_project_id.exists().partner_id
+        if 'default_outsourcing_id' in self.env.context:
+            default_outsourcing_id = self.env['outsourcing.outsourcing'].browse(self.env.context['default_outsourcing_id'])
+            return default_outsourcing_id.exists().partner_id
 
     def _get_default_stage_id(self):
         """ Gives default stage_id """
-        project_id = self.env.context.get('default_project_id')
-        if not project_id:
+        outsourcing_id = self.env.context.get('default_outsourcing_id')
+        if not outsourcing_id:
             return False
-        return self.stage_find(project_id, [('fold', '=', False)])
+        return self.stage_find(outsourcing_id, [('fold', '=', False)])
 
     @api.model
     def _default_company_id(self):
-        if self._context.get('default_project_id'):
-            return self.env['project.project'].browse(self._context['default_project_id']).company_id
+        if self._context.get('default_outsourcing_id'):
+            return self.env['outsourcing.outsourcing'].browse(self._context['default_outsourcing_id']).company_id
         return self.env.company
 
     @api.model
     def _read_group_stage_ids(self, stages, domain, order):
         search_domain = [('id', 'in', stages.ids)]
-        if 'default_project_id' in self.env.context:
-            search_domain = ['|', ('project_ids', '=', self.env.context['default_project_id'])] + search_domain
+        if 'default_outsourcing_id' in self.env.context:
+            search_domain = ['|', ('outsourcing_ids', '=', self.env.context['default_outsourcing_id'])] + search_domain
 
         stage_ids = stages._search(search_domain, order=order, access_rights_uid=SUPERUSER_ID)
         return stages.browse(stage_ids)
@@ -481,10 +481,10 @@ class Task(models.Model):
     ], default='0', index=True, string="Priority")
     sequence = fields.Integer(string='Sequence', index=True, default=10,
         help="Gives the sequence order when displaying a list of tasks.")
-    stage_id = fields.Many2one('project.task.type', string='Stage', ondelete='restrict', tracking=True, index=True,
+    stage_id = fields.Many2one('outsourcing.task.type', string='Stage', ondelete='restrict', tracking=True, index=True,
         default=_get_default_stage_id, group_expand='_read_group_stage_ids',
-        domain="[('project_ids', '=', project_id)]", copy=False)
-    tag_ids = fields.Many2many('project.tags', string='Tags')
+        domain="[('outsourcing_ids', '=', outsourcing_id)]", copy=False)
+    tag_ids = fields.Many2many('outsourcing.tags', string='Tags')
     kanban_state = fields.Selection([
         ('normal', 'Grey'),
         ('done', 'Green'),
@@ -501,7 +501,7 @@ class Task(models.Model):
         index=True,
         copy=False,
         readonly=True)
-    project_id = fields.Many2one('project.project', string='Project', default=lambda self: self.env.context.get('default_project_id'),
+    outsourcing_id = fields.Many2one('outsourcing.outsourcing', string='outsourcing', default=lambda self: self.env.context.get('default_outsourcing_id'),
         index=True, tracking=True, check_company=True, change_default=True)
     planned_hours = fields.Float("Planned Hours", help='It is the time planned to achieve the task. If this document has sub-tasks, it means the time needed to achieve this tasks and its childs.',tracking=True)
     subtask_planned_hours = fields.Float("Subtasks", compute='_compute_subtask_planned_hours', help="Computed using sum of hours planned of all subtasks created from main task. Usually these hours are less or equal to the Planned Hours (of main task).")
@@ -514,20 +514,20 @@ class Task(models.Model):
         default=lambda self: self._get_default_partner(),
         domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]")
     partner_city = fields.Char(related='partner_id.city', readonly=False)
-    manager_id = fields.Many2one('res.users', string='Project Manager', related='project_id.user_id', readonly=True, related_sudo=False)
+    manager_id = fields.Many2one('res.users', string='outsourcing Manager', related='outsourcing_id.user_id', readonly=True, related_sudo=False)
     company_id = fields.Many2one('res.company', string='Company', required=True, default=_default_company_id)
     color = fields.Integer(string='Color Index')
     user_email = fields.Char(related='user_id.email', string='User Email', readonly=True, related_sudo=False)
     attachment_ids = fields.One2many('ir.attachment', compute='_compute_attachment_ids', string="Main Attachments",
         help="Attachment that don't come from message.")
     # In the domain of displayed_image_id, we couln't use attachment_ids because a one2many is represented as a list of commands so we used res_model & res_id
-    displayed_image_id = fields.Many2one('ir.attachment', domain="[('res_model', '=', 'project.task'), ('res_id', '=', id), ('mimetype', 'ilike', 'image')]", string='Cover Image')
+    displayed_image_id = fields.Many2one('ir.attachment', domain="[('res_model', '=', 'outsourcing.task'), ('res_id', '=', id), ('mimetype', 'ilike', 'image')]", string='Cover Image')
     legend_blocked = fields.Char(related='stage_id.legend_blocked', string='Kanban Blocked Explanation', readonly=True, related_sudo=False)
     legend_done = fields.Char(related='stage_id.legend_done', string='Kanban Valid Explanation', readonly=True, related_sudo=False)
     legend_normal = fields.Char(related='stage_id.legend_normal', string='Kanban Ongoing Explanation', readonly=True, related_sudo=False)
-    parent_id = fields.Many2one('project.task', string='Parent Task', index=True)
-    child_ids = fields.One2many('project.task', 'parent_id', string="Sub-tasks", context={'active_test': False})
-    subtask_project_id = fields.Many2one('project.project', related="project_id.subtask_project_id", string='Sub-task Project', readonly=True)
+    parent_id = fields.Many2one('outsourcing.task', string='Parent Task', index=True)
+    child_ids = fields.One2many('outsourcing.task', 'parent_id', string="Sub-tasks", context={'active_test': False})
+    subtask_outsourcing_id = fields.Many2one('outsourcing.outsourcing', related="outsourcing_id.subtask_outsourcing_id", string='Sub-task outsourcing', readonly=True)
     subtask_count = fields.Integer("Sub-task count", compute='_compute_subtask_count')
     email_from = fields.Char(string='Email', help="These people will receive email.", index=True)
     # Computed field about working time elapsed between record creation and assignation/closing.
@@ -545,21 +545,21 @@ class Task(models.Model):
 
     def _compute_attachment_ids(self):
         for task in self:
-            attachment_ids = self.env['ir.attachment'].search([('res_id', '=', task.id), ('res_model', '=', 'project.task')]).ids
+            attachment_ids = self.env['ir.attachment'].search([('res_id', '=', task.id), ('res_model', '=', 'outsourcing.task')]).ids
             message_attachment_ids = task.mapped('message_ids.attachment_ids').ids  # from mail_thread
             task.attachment_ids = [(6, 0, list(set(attachment_ids) - set(message_attachment_ids)))]
 
     @api.depends('create_date', 'date_end', 'date_assign')
     def _compute_elapsed(self):
         task_linked_to_calendar = self.filtered(
-            lambda task: task.project_id.resource_calendar_id and task.create_date
+            lambda task: task.outsourcing_id.resource_calendar_id and task.create_date
         )
         for task in task_linked_to_calendar:
             dt_create_date = fields.Datetime.from_string(task.create_date)
 
             if task.date_assign:
                 dt_date_assign = fields.Datetime.from_string(task.date_assign)
-                duration_data = task.project_id.resource_calendar_id.get_work_duration_data(dt_create_date, dt_date_assign, compute_leaves=True)
+                duration_data = task.outsourcing_id.resource_calendar_id.get_work_duration_data(dt_create_date, dt_date_assign, compute_leaves=True)
                 task.working_hours_open = duration_data['hours']
                 task.working_days_open = duration_data['days']
             else:
@@ -568,7 +568,7 @@ class Task(models.Model):
 
             if task.date_end:
                 dt_date_end = fields.Datetime.from_string(task.date_end)
-                duration_data = task.project_id.resource_calendar_id.get_work_duration_data(dt_create_date, dt_date_end, compute_leaves=True)
+                duration_data = task.outsourcing_id.resource_calendar_id.get_work_duration_data(dt_create_date, dt_date_end, compute_leaves=True)
                 task.working_hours_close = duration_data['hours']
                 task.working_days_close = duration_data['days']
             else:
@@ -595,9 +595,9 @@ class Task(models.Model):
 
     def _compute_access_warning(self):
         super(Task, self)._compute_access_warning()
-        for task in self.filtered(lambda x: x.project_id.privacy_visibility != 'portal'):
+        for task in self.filtered(lambda x: x.outsourcing_id.privacy_visibility != 'portal'):
             task.access_warning = _(
-                "The task cannot be shared with the recipient(s) because the privacy of the project is too restricted. Set the privacy of the project to 'Visible by following customers' in order to make it accessible by the recipient(s).")
+                "The task cannot be shared with the recipient(s) because the privacy of the outsourcing is too restricted. Set the privacy of the outsourcing to 'Visible by following customers' in order to make it accessible by the recipient(s).")
 
     @api.depends('child_ids.planned_hours')
     def _compute_subtask_planned_hours(self):
@@ -607,7 +607,7 @@ class Task(models.Model):
     @api.depends('child_ids')
     def _compute_subtask_count(self):
         """ Note: since we accept only one level subtask, we can use a read_group here """
-        task_data = self.env['project.task'].read_group([('parent_id', 'in', self.ids)], ['parent_id'], ['parent_id'])
+        task_data = self.env['outsourcing.task'].read_group([('parent_id', 'in', self.ids)], ['parent_id'], ['parent_id'])
         mapping = dict((data['parent_id'][0], data['parent_id_count']) for data in task_data)
         for task in self:
             task.subtask_count = mapping.get(task.id, 0)
@@ -623,24 +623,24 @@ class Task(models.Model):
                 if not self[field_name]:
                     self[field_name] = value
 
-    @api.onchange('project_id')
-    def _onchange_project(self):
-        if self.project_id:
+    @api.onchange('outsourcing_id')
+    def _onchange_outsourcing(self):
+        if self.outsourcing_id:
             # find partner
-            if self.project_id.partner_id:
-                self.partner_id = self.project_id.partner_id
+            if self.outsourcing_id.partner_id:
+                self.partner_id = self.outsourcing_id.partner_id
             # find stage
-            if self.project_id not in self.stage_id.project_ids:
-                self.stage_id = self.stage_find(self.project_id.id, [('fold', '=', False)])
+            if self.outsourcing_id not in self.stage_id.outsourcing_ids:
+                self.stage_id = self.stage_find(self.outsourcing_id.id, [('fold', '=', False)])
             # keep multi company consistency
-            self.company_id = self.project_id.company_id
+            self.company_id = self.outsourcing_id.company_id
         else:
             self.stage_id = False
     
     @api.onchange('company_id')
     def _onchange_task_company(self):
-        if self.project_id.company_id != self.company_id:
-            self.project_id = False
+        if self.outsourcing_id.company_id != self.company_id:
+            self.outsourcing_id = False
 
     @api.constrains('parent_id', 'child_ids')
     def _check_subtask_level(self):
@@ -665,14 +665,14 @@ class Task(models.Model):
     @api.model
     def get_empty_list_help(self, help):
         tname = _("task")
-        project_id = self.env.context.get('default_project_id', False)
-        if project_id:
-            name = self.env['project.project'].browse(project_id).label_tasks
+        outsourcing_id = self.env.context.get('default_outsourcing_id', False)
+        if outsourcing_id:
+            name = self.env['outsourcing.outsourcing'].browse(outsourcing_id).label_tasks
             if name: tname = name.lower()
 
         self = self.with_context(
-            empty_list_help_id=self.env.context.get('default_project_id'),
-            empty_list_help_model='project.project',
+            empty_list_help_id=self.env.context.get('default_outsourcing_id'),
+            empty_list_help_model='outsourcing.outsourcing',
             empty_list_help_document_name=tname,
         )
         return super(Task, self).get_empty_list_help(help)
@@ -692,15 +692,15 @@ class Task(models.Model):
         section_ids = []
         if section_id:
             section_ids.append(section_id)
-        section_ids.extend(self.mapped('project_id').ids)
+        section_ids.extend(self.mapped('outsourcing_id').ids)
         search_domain = []
         if section_ids:
             search_domain = [('|')] * (len(section_ids) - 1)
             for section_id in section_ids:
-                search_domain.append(('project_ids', '=', section_id))
+                search_domain.append(('outsourcing_ids', '=', section_id))
         search_domain += list(domain)
         # perform search, return the first found
-        return self.env['project.task.type'].search(search_domain, order=order, limit=1).id
+        return self.env['outsourcing.task.type'].search(search_domain, order=order, limit=1).id
 
     # ------------------------------------------------
     # CRUD overrides
@@ -711,8 +711,8 @@ class Task(models.Model):
         # context: no_log, because subtype already handle this
         context = dict(self.env.context)
         # for default stage
-        if vals.get('project_id') and not context.get('default_project_id'):
-            context['default_project_id'] = vals.get('project_id')
+        if vals.get('outsourcing_id') and not context.get('default_outsourcing_id'):
+            context['default_outsourcing_id'] = vals.get('outsourcing_id')
         # user_id change: update date_assign
         if vals.get('user_id'):
             vals['date_assign'] = fields.Datetime.now()
@@ -726,7 +726,7 @@ class Task(models.Model):
                 if fname not in vals:
                     vals[fname] = value
         task = super(Task, self.with_context(context)).create(vals)
-        if task.project_id.privacy_visibility == 'portal':
+        if task.outsourcing_id.privacy_visibility == 'portal':
             task._portal_ensure_token()
         return task
 
@@ -746,12 +746,12 @@ class Task(models.Model):
         result = super(Task, self).write(vals)
         # rating on stage
         if 'stage_id' in vals and vals.get('stage_id'):
-            self.filtered(lambda x: x.project_id.rating_status == 'stage')._send_task_rating_mail(force_send=True)
+            self.filtered(lambda x: x.outsourcing_id.rating_status == 'stage')._send_task_rating_mail(force_send=True)
         return result
 
     def update_date_end(self, stage_id):
-        project_task_type = self.env['project.task.type'].browse(stage_id)
-        if project_task_type.fold:
+        outsourcing_task_type = self.env['outsourcing.task.type'].browse(stage_id)
+        if outsourcing_task_type.fold:
             return {'date_end': fields.Datetime.now()}
         return {'date_end': False}
 
@@ -766,11 +766,11 @@ class Task(models.Model):
     def _subtask_values_from_parent(self, parent_id):
         """ Get values for substask implied field of the given"""
         result = {}
-        parent_task = self.env['project.task'].browse(parent_id)
+        parent_task = self.env['outsourcing.task'].browse(parent_id)
         for field_name in self._subtask_default_fields():
             result[field_name] = parent_task[field_name]
-        # special case for the subtask default project
-        result['project_id'] = parent_task.project_id.subtask_project_id
+        # special case for the subtask default outsourcing
+        result['outsourcing_id'] = parent_task.outsourcing_id.subtask_outsourcing_id
         return self._convert_to_write(result)
 
     # ---------------------------------------------------
@@ -789,20 +789,20 @@ class Task(models.Model):
         return res
 
     def _creation_subtype(self):
-        return self.env.ref('project.mt_task_new')
+        return self.env.ref('outsourcing.mt_task_new')
 
     def _track_subtype(self, init_values):
         self.ensure_one()
         if 'kanban_state_label' in init_values and self.kanban_state == 'blocked':
-            return self.env.ref('project.mt_task_blocked')
+            return self.env.ref('outsourcing.mt_task_blocked')
         elif 'kanban_state_label' in init_values and self.kanban_state == 'done':
-            return self.env.ref('project.mt_task_ready')
+            return self.env.ref('outsourcing.mt_task_ready')
         elif 'stage_id' in init_values:
-            return self.env.ref('project.mt_task_stage')
+            return self.env.ref('outsourcing.mt_task_stage')
         return super(Task, self)._track_subtype(init_values)
 
     def _notify_get_groups(self, msg_vals=None):
-        """ Handle project users and managers recipients that can assign
+        """ Handle outsourcing users and managers recipients that can assign
         tasks and create new one directly from notification emails. Also give
         access button to portal users and portal customers. If they are notified
         they should probably have access to the document. """
@@ -810,17 +810,17 @@ class Task(models.Model):
         msg_vals = msg_vals or {}
         self.ensure_one()
 
-        project_user_group_id = self.env.ref('project.group_project_user').id
+        outsourcing_user_group_id = self.env.ref('outsourcing.group_outsourcing_user').id
         new_group = (
-            'group_project_user',
-            lambda pdata: pdata['type'] == 'user' and project_user_group_id in pdata['groups'],
+            'group_outsourcing_user',
+            lambda pdata: pdata['type'] == 'user' and outsourcing_user_group_id in pdata['groups'],
             {},
         )
 
         if not self.user_id and not self.stage_id.fold:
             take_action = self._notify_get_action_link('assign', **msg_vals)
-            project_actions = [{'url': take_action, 'title': _('I take it')}]
-            new_group[2]['actions'] = project_actions
+            outsourcing_actions = [{'url': take_action, 'title': _('I take it')}]
+            new_group[2]['actions'] = outsourcing_actions
 
         groups = [new_group] + groups
 
@@ -831,10 +831,10 @@ class Task(models.Model):
         return groups
 
     def _notify_get_reply_to(self, default=None, records=None, company=None, doc_names=None):
-        """ Override to set alias of tasks to their project if any. """
-        aliases = self.sudo().mapped('project_id')._notify_get_reply_to(default=default, records=None, company=company, doc_names=None)
-        res = {task.id: aliases.get(task.project_id.id) for task in self}
-        leftover = self.filtered(lambda rec: not rec.project_id)
+        """ Override to set alias of tasks to their outsourcing if any. """
+        aliases = self.sudo().mapped('outsourcing_id')._notify_get_reply_to(default=default, records=None, company=company, doc_names=None)
+        res = {task.id: aliases.get(task.outsourcing_id.id) for task in self}
+        leftover = self.filtered(lambda rec: not rec.outsourcing_id)
         if leftover:
             res.update(super(Task, leftover)._notify_get_reply_to(default=default, records=None, company=company, doc_names=doc_names))
         return res
@@ -842,7 +842,7 @@ class Task(models.Model):
     def email_split(self, msg):
         email_list = tools.email_split((msg.get('to') or '') + ',' + (msg.get('cc') or ''))
         # check left-part is not already an alias
-        aliases = self.mapped('project_id.alias_name')
+        aliases = self.mapped('outsourcing_id.alias_name')
         return [x for x in email_list if x.split('@')[0] not in aliases]
 
     @api.model
@@ -892,9 +892,9 @@ class Task(models.Model):
 
     def _notify_email_header_dict(self):
         headers = super(Task, self)._notify_email_header_dict()
-        if self.project_id:
+        if self.outsourcing_id:
             current_objects = [h for h in headers.get('X-Odoo-Objects', '').split(',') if h]
-            current_objects.insert(0, 'project.project-%s, ' % self.project_id.id)
+            current_objects.insert(0, 'outsourcing.outsourcing-%s, ' % self.outsourcing_id.id)
             headers['X-Odoo-Objects'] = ','.join(current_objects)
         if self.tag_ids:
             headers['X-Odoo-Tags'] = ','.join(self.tag_ids.mapped('name'))
@@ -920,28 +920,28 @@ class Task(models.Model):
         return {
             'name': _('Parent Task'),
             'view_mode': 'form',
-            'res_model': 'project.task',
+            'res_model': 'outsourcing.task',
             'res_id': self.parent_id.id,
             'type': 'ir.actions.act_window',
             'context': dict(self._context, create=False)
         }
 
     def action_subtask(self):
-        action = self.env.ref('project.project_task_action_sub_task').read()[0]
+        action = self.env.ref('outsourcing.outsourcing_task_action_sub_task').read()[0]
 
         # only display subtasks of current task
         action['domain'] = [('id', 'child_of', self.id), ('id', '!=', self.id)]
 
         # update context, with all default values as 'quick_create' does not contains all field in its view
-        if self._context.get('default_project_id'):
-            default_project = self.env['project.project'].browse(self.env.context['default_project_id'])
+        if self._context.get('default_outsourcing_id'):
+            default_outsourcing = self.env['outsourcing.outsourcing'].browse(self.env.context['default_outsourcing_id'])
         else:
-            default_project = self.project_id.subtask_project_id or self.project_id
+            default_outsourcing = self.outsourcing_id.subtask_outsourcing_id or self.outsourcing_id
         ctx = dict(self.env.context)
         ctx.update({
             'default_name': self.env.context.get('name', self.name) + ':',
             'default_parent_id': self.id,  # will give default subtask field in `default_get`
-            'default_company_id': default_project.company_id.id if default_project else self.env.company.id,
+            'default_company_id': default_outsourcing.company_id.id if default_outsourcing else self.env.company.id,
             'search_default_parent_id': self.id,
         })
         parent_values = self._subtask_values_from_parent(self.id)
@@ -964,21 +964,21 @@ class Task(models.Model):
 
     def rating_get_partner_id(self):
         res = super(Task, self).rating_get_partner_id()
-        if not res and self.project_id.partner_id:
-            return self.project_id.partner_id
+        if not res and self.outsourcing_id.partner_id:
+            return self.outsourcing_id.partner_id
         return res
 
     def rating_apply(self, rate, token=None, feedback=None, subtype=None):
-        return super(Task, self).rating_apply(rate, token=token, feedback=feedback, subtype="project.mt_task_rating")
+        return super(Task, self).rating_apply(rate, token=token, feedback=feedback, subtype="outsourcing.mt_task_rating")
 
     def _rating_get_parent_field_name(self):
-        return 'project_id'
+        return 'outsourcing_id'
 
 
-class ProjectTags(models.Model):
-    """ Tags of project's tasks """
-    _name = "project.tags"
-    _description = "Project Tags"
+class outsourcingTags(models.Model):
+    """ Tags of outsourcing's tasks """
+    _name = "outsourcing.tags"
+    _description = "outsourcing Tags"
 
     name = fields.Char('Tag Name', required=True)
     color = fields.Integer(string='Color Index')

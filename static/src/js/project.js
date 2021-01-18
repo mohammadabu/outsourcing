@@ -1,4 +1,4 @@
-odoo.define('project.update_kanban', function (require) {
+odoo.define('outsourcing.update_kanban', function (require) {
 'use strict';
 
 var KanbanRecord = require('web.KanbanRecord');
@@ -13,8 +13,8 @@ KanbanRecord.include({
      * @private
      */
     _openRecord: function () {
-        if (this.modelName === 'project.project' && this.$(".o_project_kanban_boxes a").length) {
-            this.$('.o_project_kanban_boxes a').first().click();
+        if (this.modelName === 'outsourcing.outsourcing' && this.$(".o_outsourcing_kanban_boxes a").length) {
+            this.$('.o_outsourcing_kanban_boxes a').first().click();
         } else {
             this._super.apply(this, arguments);
         }
