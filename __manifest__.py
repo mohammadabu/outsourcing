@@ -21,8 +21,8 @@
     ],
     'description': "",
     'data': [
-        # 'security/outsourcing_security.xml',
-        # 'security/ir.model.access.csv',
+        'security/outsourcing_security.xml',
+        'security/ir.model.access.csv',
         # 'report/outsourcing_report_views.xml',
         # 'views/analytic_views.xml',
         # 'views/digest_views.xml',
