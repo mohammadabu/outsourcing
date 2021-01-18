@@ -29,4 +29,4 @@ class res_users_rule(models.Model):
         for val in outsourcing:
             stage_ids.append(val.id)
         for rec in self:
-            rec.project_rule = stage_ids
+            rec.project_rule = []
