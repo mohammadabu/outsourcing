@@ -285,17 +285,16 @@ class outsourcing(models.Model):
             self.map_tasks(outsourcing.id)
         return outsourcing
 
-    @api.model
-    def create(self, vals):
-        # Prevent double outsourcing creation
-        self = self.with_context(mail_create_nosubscribe=True)
-        outsourcings = {}
-        outsourcings = super(outsourcing, self).create(vals)
-        if not vals.get('subtask_outsourcing_id'):
-            outsourcings.subtask_outsourcing_id = outsourcings.id
-        if outsourcings.privacy_visibility == 'portal' and outsourcings.partner_id:
-            outsourcings.message_subscribe(outsourcings.partner_id.ids)
-        return outsourcings
+    # @api.model
+    # def create(self, vals):
+    #     # Prevent double outsourcing creation
+    #     self = self.with_context(mail_create_nosubscribe=True)
+    #     outsourcings = super(outsourcing, self).create(vals)
+    #     if not vals.get('subtask_outsourcing_id'):
+    #         outsourcings.subtask_outsourcing_id = outsourcings.id
+    #     if outsourcings.privacy_visibility == 'portal' and outsourcings.partner_id:
+    #         outsourcings.message_subscribe(outsourcings.partner_id.ids)
+    #     return outsourcings
 
     def write(self, vals):
         # directly compute is_favorite to dodge allow write access right
