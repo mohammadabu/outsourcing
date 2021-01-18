@@ -2,7 +2,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 {
-    'name': 'Project',
+    'name': 'Outsourcing',
     'version': '1.1',
     'website': 'https://www.odoo.com/page/project-management',
     'category': 'Operations/Project',
