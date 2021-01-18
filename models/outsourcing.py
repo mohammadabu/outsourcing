@@ -289,7 +289,7 @@ class outsourcing(models.Model):
     def create(self, vals):
         # Prevent double outsourcing creation
         self = self.with_context(mail_create_nosubscribe=True)
-        outsourcings = ""
+        outsourcings = {}
         outsourcings = super(outsourcing, self).create(vals)
         if not vals.get('subtask_outsourcing_id'):
             outsourcings.subtask_outsourcing_id = outsourcings.id
